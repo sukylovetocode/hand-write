@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>new 构造函数</title>
+  </head>
+  <body>
+    <script>
+      function myNew(func, ...rest) {
+        // let obj = Object.create(func.prototype);
+        let obj = {};
+        obj.__proto__ = func.prototype;
+        func.apply(obj, rest);
+        return obj;
+      }
+      function Person(name, age) {
+        this.name = name;
+        this.age = age;
+      }
+      Person.prototype.id = 2;
+      let a = myNew(Person, "aa", 12);
+      console.log(a.id);
+    </script>
+  </body>
+</html>

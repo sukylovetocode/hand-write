@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Promise</title>
+  </head>
+  <body>
+    <script>
+      // callback hell 需要通过上一步结果进行处理
+      // 大家都要求遵循规则，但是具体的实现我们不在乎
+      /**
+       * 具体规则
+       * 1 三个状态PENDING RESOLVED REJECTED
+       * 2 then 方法且其返回的也是一个Promise
+       * 3 resolve以及reject两个方法 用于用户回调
+       * 4 传入executor执行器，内容会立即执行，但结果将稍后返回
+       * 5 难点： 如何实现Promise的链式调用 怎么拿到上一个的结果 直接返回this 因为代表同一个实例无法做到
+       */
+
+      function MyPromise(executor) {
+        this.status = "PENDING";
+        // 回调函数
+        this.onFulfilledCallbacks = [];
+        this.onRejectedCallbacks = [];
+        this.value = null;
+        this.reason = null;
+        var that = this;
+
+        function resolve(value) {
+          if (that.status === "PENDING") {
+            that.status = "RESOLVED";
+            that.value = value;
+            that.onFulfilledCallbacks.forEach((fn) => {
+              that.value = fn(that.value);
+            });
+          }
+        }
+        function reject(err) {
+          if (that.status === "PENDING") {
+            that.status = "REJECTED";
+            that.reason = err;
+            that.onRejectedCallbacks.forEach((fn) => {
+              that.reason = fn(that.reason);
+            });
+          }
+        }
+        try {
+          executor(resolve, reject);
+        } catch (e) {
+          reject(e);
+        }
+      }
+
+      MyPromise.prototype.then = function (onFulfilled, onRejected) {
+        if (this.status === "PENDING") {
+          this.onFulfilledCallbacks.push(onFulfilled);
+          this.onRejectedCallbacks.push(onRejected);
+        } else if (this.status === "RESOLVED") {
+          this.value = onFulfilled(this.value);
+        } else if (this.status === "REJECTED") {
+          this.reason = onRejected(this.reason);
+        }
+        return this;
+      };
+
+      let promise1 = new MyPromise((resolve, reject) => {
+        setTimeout(() => {
+          console.log("计时器");
+          resolve(123);
+        }, 1000);
+      }).then((data) => {
+        setTimeout(() => {
+          console.log("计时器");
+        }, 100);
+        console.log(data);
+        return 234;
+      });
+      let promise2 = promise1
+        .then((data) => {
+          console.log(data);
+          return data * 10;
+        })
+        .then((data) => {
+          console.log(data);
+        });
+    </script>
+  </body>
+</html>
