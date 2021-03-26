@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS生成的类</title>
+</head>
+<body>
+    
+    <script>
+      (function(){
+        var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+        console.log(fnTest)
+       
+        this.Class = function(){};
+
+         // 相当于window.Class = function(){}
+        // class 是一个函数，也是一个对象，在上面定义函数属性extend ，他不在原型链上，直接定义在构造函数
+        Class.extend = function(prop) {
+           // 创建一个父类对象，作为原型，此时不执行init方法
+           var prototype = new this();
+        }
+
+        // 傀儡构造函数，实际名称是var 指定，比如Person
+        function Class() {
+            // 调用extend 函数创建类时不会调用init,真正new 子类对象才会执行init
+            if(!initializing && this.init){
+                this.init.apply(this, arguments)
+            }
+        }
+
+        // 指定原型对象
+        Class.prototype = prototype
+        // 指定原型对象的构造器
+        Class.prototype.constructor = Class
+        // 把extend函数沿着继承层次传递下去，比如Person.extend Student.extend
+        Class.extend = arguments.callee
+
+        return Class;
+      })();
+        
+    </script>
+</body>
+</html>
