@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>jquery-mini</title>
+  </head>
+  <body>
+    <script src="./core.js"></script>
+    <script>
+      $(".a");
+
+      $.extend({
+        plugins: function (args) {
+          console.log("扩展插件");
+        },
+      });
+      $.fn.myPlugins = function () {
+        console.log("扩展的插件");
+      };
+      // callback
+      let callback = $.callbacks();
+      callback.add(function (val) {
+        console.log("添加函数", val);
+      });
+      callback.fire("func");
+      callback.add(function (val) {
+        console.log("函数", val);
+      });
+      callback.fire("func1");
+    </script>
+  </body>
+</html>
