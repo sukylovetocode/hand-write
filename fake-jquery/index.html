@@ -16,9 +16,7 @@
           console.log("扩展插件");
         },
       });
-      $.fn.myPlugins = function () {
-        console.log("扩展的插件");
-      };
+
       // callback
       let callback = $.callbacks();
       callback.add(function (val) {

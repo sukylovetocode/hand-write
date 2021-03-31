@@ -45,11 +45,24 @@ $.when(wait(dtd))
     css: function (style) {
       console.log(style);
     },
+    each: function (obj, callback) {
+      if (Object.prototype.toString.call(obj) === "[object Array]") {
+        for (let i = 0; i < obj.length; i++) {
+          callback.call(obj[i], i, obj[i]);
+        }
+      } else {
+        for (let i in obj) {
+          callback.call(obj[i], i, obj[i]);
+        }
+      }
+      return obj;
+    },
   };
 
   // 扩展办法
   jquery.extend = jquery.fn.extend = function () {
     var target = arguments[0];
+    console.log(target);
     let len = arguments.length;
     var i = 1;
     if (len === i) {
@@ -67,6 +80,16 @@ $.when(wait(dtd))
     }
     return target;
   };
+
+  // 遍历处理方法 each
+
+  // reday文档加载完成后 借助了deferred
+
+  // animation 动画效果
+
+  // input 获取input的值
+
+  // 设置文本text
 
   // callback对象原理
   // callback 是通过add 添加处理函数队列 通过fire依次执行队列中得函数
@@ -134,10 +157,97 @@ $.when(wait(dtd))
 
   // deferred对象 用来回调
   jquery.extend({
-    Deferred: function (func) {},
+    Deferred: function (func) {
+      // 这几个参数意义 动作 监听器 回调函数
+      // 需要两个回调函数 一个是给当前函数 另一个是给then函数
+      var tuples = [
+        [
+          "notify",
+          "progress",
+          jQuery.Callbacks("memory"),
+          jQuery.Callbacks("memory"),
+          2,
+        ],
+        [
+          "resolve",
+          "done",
+          jQuery.Callbacks("once memory"),
+          jQuery.Callbacks("once memory"),
+          0,
+          "resolved",
+        ],
+        [
+          "reject",
+          "fail",
+          jQuery.Callbacks("once memory"),
+          jQuery.Callbacks("once memory"),
+          1,
+          "rejected",
+        ],
+      ];
+
+      var deferrd = {};
+      var promise = {
+        then: function (onFulfilled, onRejected) {
+          // 遵循promise/A+ 标准来写的
+          // 添加函数
+          return jquery
+            .Deferred(function (newDefer) {
+              // newDefer表示的
+              // 会被运行 需要储存未来需要的onFulfilled, onRejected
+              turples[0][3].add(onFulfilled);
+              turples[1][3].add(onRejected);
+            })
+            .promise();
+        },
+        promise: function (obj) {
+          // 等于当前对象
+          return obj != null ? jquery.extend(obj, promise) : promise;
+        },
+      };
+
+      for (let i = 0; i < tuples.length; i++) {
+        var list = tuples[i][2]; // list = jquery.callbacks
+
+        // promise.progress = list.add 相当于赋值callbacks
+        promise[tuples[i][1]] = list.add;
+
+        // progress_handlers.fire
+        // fulfilled_handlers.fire
+        // rejected_handlers.fire
+        // then的回调方法 储存在了
+        list.add(tuples[i][3].fire);
+
+        // 给deferred扩展resolve reject
+        // deferred.notify = function() { deferred.notifyWith(...) }
+        // deferred.resolve = function() { deferred.resolveWith(...) }
+        // deferred.reject = function() { deferred.rejectWith(...) }
+        deferred[tuples[i][0]] = function () {
+          deferred[tuples[i][0] + "With"](
+            this === deferred ? undefined : this,
+            arguments
+          );
+          return this;
+        };
+
+        // deferred.notifyWith = list.fireWith
+        // deferred.resolveWith = list.fireWith
+        // deferred.rejectWith = list.fireWith
+        deferred[tuples[i][0] + "With"] = list.fireWith;
+      }
+
+      // 合并promise和deferred对象 使得我们deferred对象有了then这些方法
+      promise.promise(deferrd);
+
+      // 相当于excutar
+      if (func) {
+        func.call(deferrd, deferrd);
+      }
+
+      return deferrd;
+    },
   });
 
-  // 请求ajax
   jquery.extend({
     ajax: function (url, options) {},
   });
